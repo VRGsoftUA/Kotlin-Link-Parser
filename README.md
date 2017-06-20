@@ -1,6 +1,21 @@
 # Kotlin Link Parser
 ### Here is our implimentation of Link Preview written in Kotlin with RxKotlin2
 ## Usage
+Include the library as local library project.
+```gradle
+allprojects {
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+dependencies {
+
+  compile 'com.github.VRGsoftUA:Kotlin-Link-Parser:1.0.0'
+
+}
+```
+
 Initialize LinkCrawler
 ```kotlin
 val crawler: LinkCrawler = LinkCrawler()
