@@ -16,9 +16,6 @@ import io.reactivex.processors.PublishProcessor
 
 class LinkCrawler {
     companion object {
-        const val ALL: Int = -1
-        const val NONE: Int = -2
-
         fun extendedTrim(content: String): String = content
                 .replace("\\s+", " ")
                 .replace("\n", " ")
@@ -29,9 +26,9 @@ class LinkCrawler {
         private const val HTTPS_PROTOCOL = "https://"
     }
 
-    var mCache: MutableMap<String, ParseContent> = mutableMapOf()
     var mPreloadCallback: LinkPreviewCallback? = null
 
+    private var mCache: MutableMap<String, ParseContent> = mutableMapOf()
     private val processor: PublishProcessor<Result> = PublishProcessor.create()
 
     fun parseUrl(url: String): Flowable<Result> {
@@ -254,8 +251,7 @@ class LinkCrawler {
 
         urlConn = connectURL(finalResult)
         urlConn.headerFields
-
-
+        
         while (urlConn.url.toString() != finalResult) {
             finalResult = unshortUrl(finalResult)
         }
