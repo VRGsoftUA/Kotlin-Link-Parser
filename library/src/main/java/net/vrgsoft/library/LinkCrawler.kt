@@ -58,7 +58,7 @@ class LinkCrawler {
         return Single.fromCallable {
             val urls: List<String> = SearchUrls.matches(url)
             when {
-                urls.isNotEmpty() -> content.finalUrl = unshortUrl(extendedTrim(urls[0]))
+                urls.isNotEmpty() -> content.finalUrl = unshortenUrl(extendedTrim(urls[0]))
                 else -> content.finalUrl = ""
             }
             if (content.finalUrl != "") {
@@ -110,7 +110,6 @@ class LinkCrawler {
     }
 
     private fun getMetaTags(content: String): MutableMap<String, String> {
-
         val metaTags = mutableMapOf<String, String>().apply {
             this["url"] = ""
             this["title"] = ""
@@ -239,28 +238,28 @@ class LinkCrawler {
         return matches
     }
 
-    private fun unshortUrl(url: String): String {
+    private fun unshortenUrl(url: String): String {
         if (!url.startsWith(HTTP_PROTOCOL) && !url.startsWith(HTTPS_PROTOCOL)) {
             return ""
         }
 
         var urlConn = connectURL(url)
-        urlConn.headerFields
+        urlConn?.headerFields
 
-        var finalResult = urlConn.url.toString()
+        var finalResult = urlConn?.url.toString()
 
         urlConn = connectURL(finalResult)
-        urlConn.headerFields
+        urlConn?.headerFields
         
-        while (urlConn.url.toString() != finalResult) {
-            finalResult = unshortUrl(finalResult)
+        while (urlConn?.url.toString() != finalResult) {
+            finalResult = unshortenUrl(finalResult)
         }
 
         return finalResult
 
     }
 
-    private fun connectURL(strURL: String): URLConnection {
+    private fun connectURL(strURL: String): URLConnection? {
         var conn: URLConnection? = null
         try {
             val inputURL = URL(strURL)
@@ -271,7 +270,7 @@ class LinkCrawler {
             println("Can not connect to the URL")
         }
 
-        return conn!!
+        return conn
     }
 
     private fun htmlDecode(content: String): String = Jsoup.parse(content).text()
