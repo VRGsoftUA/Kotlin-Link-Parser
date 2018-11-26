@@ -1,9 +1,11 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.3"
+    compileSdkVersion 28
+    buildToolsVersion "28.0.3"
+
     defaultConfig {
         applicationId "net.vrgsoft.rxurlparser"
         minSdkVersion 16
@@ -12,10 +14,11 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-    dataBinding
-            {
-                enabled = true
-            }
+
+    dataBinding {
+        enabled = true
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -23,9 +26,11 @@ android {
         }
     }
 }
+
 kapt {
     generateStubs = true
 }
+
 dependencies {
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -36,6 +41,8 @@ dependencies {
     compile 'com.github.bumptech.glide:glide:4.0.0-RC0'
     kapt "com.android.databinding:compiler:2.3.2"
 }
+
 repositories {
+    google()
     mavenCentral()
 }
