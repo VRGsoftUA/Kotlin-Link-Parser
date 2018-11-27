@@ -79,7 +79,7 @@ class LinkCrawler {
 
                         when {
                             content.title == "" -> {
-                                val matchTitle = Regex.match(content.htmlCode, Regex.TITLE_PATTERN, 2)
+                                val matchTitle = Regex.match(content.htmlCode, Regex.TITLE_PATTERN)
                                 if (matchTitle != "") {
                                     content.title = htmlDecode(matchTitle)
                                 }
@@ -215,7 +215,7 @@ class LinkCrawler {
             }
         }
         if (result == "") {
-            val final: String = Regex.match(content, pattern, 2)
+            val final: String = Regex.match(content, pattern)
             result = extendedTrim(final)
         }
 
