@@ -16,48 +16,49 @@ import io.reactivex.processors.PublishProcessor
 
 class LinkCrawler {
     companion object {
-        val ALL: Int = -1
-        val NONE: Int = -2
         fun extendedTrim(content: String): String = content
                 .replace("\\s+", " ")
                 .replace("\n", " ")
                 .replace("\r", " ")
                 .trim { it <= ' ' }
+
+        private const val HTTP_PROTOCOL = "http://"
+        private const val HTTPS_PROTOCOL = "https://"
     }
 
-    var mCache: MutableMap<String, ParseContent> = mutableMapOf()
-    private val HTTP_PROTOCOL = "http://"
-    private val HTTPS_PROTOCOL = "https://"
-    public var mPreloadCallback: LinkPreviewCallback? = null
+    var mPreloadCallback: LinkPreviewCallback? = null
 
+    private var mCache: MutableMap<String, ParseContent> = mutableMapOf()
     private val processor: PublishProcessor<Result> = PublishProcessor.create()
+
     fun parseUrl(url: String): Flowable<Result> {
         initUrl(url)
         return processor
     }
 
     private fun initUrl(url: String) {
-        if (mPreloadCallback != null) {
-            mPreloadCallback!!.onPre()
-        }
+        mPreloadCallback?.onPre()
         if (mCache.containsKey(url)) {
             processor.onNext(Result(mCache[url], isNull(mCache[url]!!), url))
         } else {
-            getCode(url).subscribeOn(Schedulers.io())
-                    .subscribe({
-                        mCache.put(url, it)
-                        processor.onNext(Result(mCache[url], isNull(it), url))
+            getCode(url)
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                    {
+                      mCache[url] = it
+                      processor.onNext(Result(mCache[url], isNull(it), url))
                     },
-                            { t -> t.printStackTrace() })
+                    { t -> t.printStackTrace() }
+                )
         }
     }
 
     private fun getCode(url: String): Single<ParseContent> {
-        val content: ParseContent = ParseContent()
+        val content = ParseContent()
         return Single.fromCallable {
             val urls: List<String> = SearchUrls.matches(url)
             when {
-                urls.isNotEmpty() -> content.finalUrl = unshortUrl(extendedTrim(urls[0]))
+                urls.isNotEmpty() -> content.finalUrl = unshortenUrl(extendedTrim(urls[0]))
                 else -> content.finalUrl = ""
             }
             if (content.finalUrl != "") {
@@ -101,7 +102,7 @@ class LinkCrawler {
             }
             val linksSet = content.finalUrl.split("&")
             content.url = linksSet[0]
-            content.canonicalUrl = cannonicalPage(content.finalUrl)
+            content.canonicalUrl = canonicalPage(content.finalUrl)
             content.description = trimTags(content.description)
             //return content
             content
@@ -109,12 +110,12 @@ class LinkCrawler {
     }
 
     private fun getMetaTags(content: String): MutableMap<String, String> {
-
-        val metaTags: MutableMap<String, String> = mutableMapOf()
-        metaTags.put("url", "")
-        metaTags.put("title", "")
-        metaTags.put("description", "")
-        metaTags.put("image", "")
+        val metaTags = mutableMapOf<String, String>().apply {
+            this["url"] = ""
+            this["title"] = ""
+            this["description"] = ""
+            this["image"] = ""
+        }
 
         val matches = Regex.matchAll(content,
                 Regex.METATAG_PATTERN)
@@ -125,90 +126,87 @@ class LinkCrawler {
                     || lowerCase.contains("property='og:url'")
                     || lowerCase.contains("name=\"url\"")
                     || lowerCase.contains("name='url'"))
-                updateMetaTag(metaTags, "url", separeMetaTagsContent(match))
+                updateMetaTag(metaTags, "url", separateMetaTagsContent(match))
             else if (lowerCase.contains("property=\"og:title\"")
                     || lowerCase.contains("property='og:title'")
                     || lowerCase.contains("name=\"title\"")
                     || lowerCase.contains("name='title'"))
-                updateMetaTag(metaTags, "title", separeMetaTagsContent(match))
+                updateMetaTag(metaTags, "title", separateMetaTagsContent(match))
             else if (lowerCase
                     .contains("property=\"og:description\"")
                     || lowerCase
                     .contains("property='og:description'")
                     || lowerCase.contains("name=\"description\"")
                     || lowerCase.contains("name='description'"))
-                updateMetaTag(metaTags, "description", separeMetaTagsContent(match))
+                updateMetaTag(metaTags, "description", separateMetaTagsContent(match))
             else if (lowerCase.contains("property=\"og:image\"")
                     || lowerCase.contains("property='og:image'")
                     || lowerCase.contains("name=\"image\"")
                     || lowerCase.contains("name='image'"))
-                updateMetaTag(metaTags, "image", separeMetaTagsContent(match))
+                updateMetaTag(metaTags, "image", separateMetaTagsContent(match))
         }
 
         return metaTags
     }
 
     private fun updateMetaTag(metaTags: MutableMap<String, String>, url: String, value: String?) {
-        if (value != null && value.isNotEmpty()) {
-            metaTags.put(url, value)
+        if (value?.isNotEmpty() == true) {
+            metaTags[url] = value
         }
     }
 
     /**
      * Gets content from metatag
      */
-    private fun separeMetaTagsContent(content: String): String {
+    private fun separateMetaTagsContent(content: String): String {
         return Jsoup.parse(content).getElementsByAttribute("content").attr("content")
     }
 
     private fun crawlCode(content: String): String {
-        var result = ""
-        var resultSpan = ""
-        var resultParagraph = ""
-        var resultDiv = ""
+        val resultSpan = getTagContent("span", content)
+        val resultParagraph = getTagContent("p", content)
+        val resultDiv = getTagContent("div", content)
 
-        resultSpan = getTagContent("span", content)
-        resultParagraph = getTagContent("p", content)
-        resultDiv = getTagContent("div", content)
-
-        when {
-            resultParagraph.length > resultSpan.length && resultParagraph.length >= resultDiv.length -> result = resultParagraph
-            resultParagraph.length > resultSpan.length && resultParagraph.length < resultDiv.length -> result = resultDiv
-            else -> result = resultParagraph
+        val result = when {
+            resultParagraph.length > resultSpan.length && resultParagraph.length >= resultDiv.length -> resultParagraph
+            resultParagraph.length > resultSpan.length && resultParagraph.length < resultDiv.length -> resultDiv
+            else -> resultParagraph
         }
 
         return htmlDecode(result)
     }
 
-    private fun cannonicalPage(url: String): String {
-        var url = url
+    private fun canonicalPage(oldUrl: String): String {
+        var newUrl = oldUrl
 
         var cannonical = ""
-        if (url.startsWith(HTTP_PROTOCOL)) {
-            url = url.substring(HTTP_PROTOCOL.length)
-        } else if (url.startsWith(HTTPS_PROTOCOL)) {
-            url = url.substring(HTTPS_PROTOCOL.length)
+        if (newUrl.startsWith(HTTP_PROTOCOL)) {
+            newUrl = newUrl.substring(HTTP_PROTOCOL.length)
+        } else if (newUrl.startsWith(HTTPS_PROTOCOL)) {
+            newUrl = newUrl.substring(HTTPS_PROTOCOL.length)
         }
 
-        val urlLength = url.length
-        (0..urlLength - 1)
-                .takeWhile { url[it] != '/' }
-                .forEach { cannonical += url[it] }
+        val urlLength = newUrl.length
+        (0 until urlLength)
+                .takeWhile { newUrl[it] != '/' }
+                .forEach { cannonical += newUrl[it] }
 
         return cannonical
 
     }
 
-    fun isNull(sourceContent: ParseContent): Boolean = !sourceContent.success &&
+    private fun isNull(sourceContent: ParseContent): Boolean = !sourceContent.success &&
             extendedTrim(sourceContent.htmlCode) == "" &&
             !isImage(sourceContent.finalUrl)
 
     private fun getTagContent(tag: String, content: String): String {
         val pattern = "<$tag(.*?)>(.*?)</$tag>"
         var result = ""
-        var currentMatch = ""
+        var currentMatch: String
+
         val matches: MutableList<String> = Regex.matchAll(content, pattern).toMutableList()
         val matchesSize = matches.size
+
         for (i in 0..matchesSize) {
             currentMatch = trimTags(matches[i])
             if (currentMatch.length >= 120) {
@@ -220,12 +218,13 @@ class LinkCrawler {
             val final: String = Regex.match(content, pattern, 2)
             result = extendedTrim(final)
         }
+
         result = result.replace("&nbsp;", "")
         return htmlDecode(result)
     }
 
-    fun getImages(document: Document): List<String> {
-        var matches: MutableList<String> = mutableListOf()
+    private fun getImages(document: Document): List<String> {
+        val matches: MutableList<String> = mutableListOf()
         val media: Elements = document.select("[src]")
 
         media.forEach {
@@ -239,28 +238,28 @@ class LinkCrawler {
         return matches
     }
 
-    private fun unshortUrl(url: String): String {
-        if (!url.startsWith(HTTP_PROTOCOL) && !url.startsWith(HTTPS_PROTOCOL))
+    private fun unshortenUrl(url: String): String {
+        if (!url.startsWith(HTTP_PROTOCOL) && !url.startsWith(HTTPS_PROTOCOL)) {
             return ""
+        }
 
         var urlConn = connectURL(url)
-        urlConn.headerFields
+        urlConn?.headerFields
 
-        var finalResult = urlConn.url.toString()
+        var finalResult = urlConn?.url.toString()
 
         urlConn = connectURL(finalResult)
-        urlConn.headerFields
-
-
-        while (urlConn.url.toString() != finalResult) {
-            finalResult = unshortUrl(finalResult)
+        urlConn?.headerFields
+        
+        while (urlConn?.url.toString() != finalResult) {
+            finalResult = unshortenUrl(finalResult)
         }
 
         return finalResult
 
     }
 
-    private fun connectURL(strURL: String): URLConnection {
+    private fun connectURL(strURL: String): URLConnection? {
         var conn: URLConnection? = null
         try {
             val inputURL = URL(strURL)
@@ -271,13 +270,12 @@ class LinkCrawler {
             println("Can not connect to the URL")
         }
 
-        return conn!!
+        return conn
     }
 
-
     private fun htmlDecode(content: String): String = Jsoup.parse(content).text()
+
     private fun trimTags(content: String): String = Jsoup.parse(content).text()
+
     private fun isImage(url: String): Boolean = url.matches(Regex.IMAGE_PATTERN.toRegex())
-
-
 }
