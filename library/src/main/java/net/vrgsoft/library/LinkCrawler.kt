@@ -13,6 +13,7 @@ import java.net.URLConnection
 import io.reactivex.Flowable
 import io.reactivex.processors.PublishProcessor
 
+typealias LinkPreloadCallback = (String) -> Unit
 
 class LinkCrawler {
     companion object {
@@ -26,10 +27,16 @@ class LinkCrawler {
         private const val HTTPS_PROTOCOL = "https://"
     }
 
+    @Deprecated(message = "Prefer the onPreload { } function instead.")
     var mPreloadCallback: LinkPreviewCallback? = null
 
+    private var preloadCallback: LinkPreloadCallback? = null
     private var mCache: MutableMap<String, ParseContent> = mutableMapOf()
     private val processor: PublishProcessor<Result> = PublishProcessor.create()
+
+    fun onPreload(callback: LinkPreloadCallback) {
+        this.preloadCallback = callback
+    }
 
     fun parseUrl(url: String): Flowable<Result> {
         initUrl(url)
@@ -38,6 +45,8 @@ class LinkCrawler {
 
     private fun initUrl(url: String) {
         mPreloadCallback?.onPre()
+        preloadCallback?.invoke(url)
+
         if (mCache.containsKey(url)) {
             processor.onNext(Result(mCache[url], isNull(mCache[url]!!), url))
         } else {
@@ -250,7 +259,7 @@ class LinkCrawler {
 
         urlConn = connectURL(finalResult)
         urlConn?.headerFields
-        
+
         while (urlConn?.url.toString() != finalResult) {
             finalResult = unshortenUrl(finalResult)
         }
