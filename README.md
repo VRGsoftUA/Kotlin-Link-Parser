@@ -12,7 +12,7 @@ allprojects {
 
 dependencies {
 
-  compile 'com.github.VRGsoftUA:Kotlin-Link-Parser:1.0.0'
+  implementation 'com.github.VRGsoftUA:Kotlin-Link-Parser:1.0.0'
 
 }
 ```
