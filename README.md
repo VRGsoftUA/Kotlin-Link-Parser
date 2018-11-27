@@ -29,9 +29,9 @@ crawler.mPreloadCallback = this
 ```
 To start parsing you need to use crawler.parseUrl and pass desired url, it returs ```Flowable<Result>```
 ```kotlin
-  crawler.parseUrl("https://github.com").subscribe({ t ->
-            mBinding.content = t.result
-        })
+crawler.parseUrl("https://github.com").subscribe { t ->
+    mBinding.content = t.result
+}
  ```
  Result object contains ParseContent field wich contains all parsed data of passed url, such as title,description etc. 
   #### [Java version](https://github.com/VRGsoftUA/Java-Link-Parser/)
