@@ -1,0 +1,19 @@
+ext.versions = [
+    minSdk            : 16,
+    compileSdk        : 28,
+    buildTools        : '28.0.3',
+    publishVersion    : '1.0.0',
+    publishVersionCode: 1,
+
+    gradlePlugin      : '3.2.1',
+
+    kotlin            : '1.3.10',
+    supportLib        : '28.0.0',
+    rxKotlin          : '2.0.3',
+    jsoup             : '1.10.2',
+
+    anko              : '0.10.1',
+    glide             : '4.7.1',
+    dataBinding       : '2.3.2',
+    constraintLayout  : '1.0.2'
+]
