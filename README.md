@@ -1,8 +1,13 @@
 # Kotlin Link Parser
-### Here is our implimentation of Link Preview written in Kotlin with RxKotlin2
+
+### Here is our implementation of Link Preview written in Kotlin with RxKotlin2
+
 ![](https://github.com/VRGsoftUA/Java-Link-Parser/blob/master/image.png)
+
 ## Usage
+
 Include the library as local library project.
+
 ```gradle
 allprojects {
     repositories {
@@ -13,32 +18,43 @@ allprojects {
 dependencies {
 
   implementation 'com.github.VRGsoftUA:Kotlin-Link-Parser:1.0.0'
-
 }
 ```
 
-Initialize LinkCrawler
-```kotlin
-val crawler: LinkCrawler = LinkCrawler()
-```
-If you need to do somthing before parsing url, you can implement PreloadCallback
-```kotlin
-class MainActivity : AppCompatActivity(), LinkPreviewCallback
+Initialize LinkCrawler:
 
-crawler.mPreloadCallback = this
-```
-To start parsing you need to use crawler.parseUrl and pass desired url, it returs ```Flowable<Result>```
 ```kotlin
-crawler.parseUrl("https://github.com").subscribe { t ->
-    mBinding.content = t.result
+val crawler = LinkCrawler()
+```
+
+If you need to do something before parsing url, you can use the preload callback:
+
+```kotlin
+crawler.onPreload {
+    // Do something
 }
+```
+
+To start parsing you need to use crawler.parseUrl and pass desired url, it returns `Flowable<Result>`:
+
+```kotlin
+val subscription = 
+  crawler.parseUrl("https://github.com").subscribe { t ->
+      mBinding.content = t.result
+  }
+  
+subscription.dispose() // avoid leaks
  ```
- Result object contains ParseContent field wich contains all parsed data of passed url, such as title,description etc. 
-  #### [Java version](https://github.com/VRGsoftUA/Java-Link-Parser/)
+ 
+Result object contains ParseContent field which contains all parsed data of passed url, such as 
+title, description etc.
+ 
+#### [Java version](https://github.com/VRGsoftUA/Java-Link-Parser/)
+
 License
 =================================
 
-    Copyright 2016 VRG Soft
+    Copyright 2018 VRG Soft
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
