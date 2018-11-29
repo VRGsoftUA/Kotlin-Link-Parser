@@ -93,7 +93,7 @@ class LinkCrawler {
                         content.title = metaTags["title"] ?: ""
                         content.description = metaTags["description"] ?: ""
 
-                        if(content.title.isEmpty()) {
+                        if (content.title.isEmpty()) {
                               val matchTitle = Regex.match(
                                   content = content.htmlCode,
                                   pattern = TITLE_PATTERN,
