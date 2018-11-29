@@ -17,14 +17,14 @@ class Regex {
         val METATAG_CONTENT_PATTERN = "content=\"(.*?)\""
         val URL_PATTERN = "<\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]>"
 
-        fun match(content: String, patter: String, index: Int): String {
-            val r: Regex = kotlin.text.Regex(patter)
+        fun match(content: String, pattern: String, index: Int): String {
+            val r: Regex = kotlin.text.Regex(pattern)
 
             return LinkCrawler.extendedTrim(r.find(content)!!.value)
         }
 
-        fun matchAll(content: String, patter: String): List<String> {
-            val r: Regex = kotlin.text.Regex(patter)
+        fun matchAll(content: String, pattern: String): List<String> {
+            val r: Regex = kotlin.text.Regex(pattern)
             val matches: List<String> = r.findAll(content).map { matchResult -> matchResult.value }.toList()
             return matches
         }
