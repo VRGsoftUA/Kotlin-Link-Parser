@@ -1,17 +1,13 @@
 package net.vrgsoft.library
 
-import io.reactivex.*
+import io.reactivex.Flowable
+import io.reactivex.Single
+import io.reactivex.processors.PublishProcessor
 import io.reactivex.schedulers.Schedulers
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
-import java.io.IOException
-import java.net.MalformedURLException
-import java.net.URL
-import java.net.URLConnection
-import io.reactivex.Flowable
-import io.reactivex.processors.PublishProcessor
 
 typealias LinkPreloadCallback = (String) -> Unit
 
@@ -67,24 +63,25 @@ class LinkCrawler {
         return Single.fromCallable {
             val urls: List<String> = SearchUrls.matches(url)
             when {
-                urls.isNotEmpty() -> content.finalUrl = unshortenUrl(extendedTrim(urls[0]))
-                else -> content.finalUrl = ""
+                urls.isNotEmpty() -> content.url = extendedTrim(urls[0])
+                else -> content.url = ""
             }
-            if (content.finalUrl != "") {
+            if (content.url != "") {
                 when {
-                    isImage(content.finalUrl) && !content.finalUrl.contains("dropbox") -> {
+                    isImage(content.url) && !content.url.contains("dropbox") -> {
                         content.success = true
-                        content.images.add(content.finalUrl)
+                        content.images.add(content.url)
                         content.title = ""
                         content.description = ""
                     }
                     else -> try {
-                        val doc: Document = Jsoup.connect(content.finalUrl).userAgent("Mozzila").get()
+                        val doc: Document = Jsoup.connect(content.url).userAgent("Mozzila").get()
                         content.htmlCode = extendedTrim(doc.toString())
                         val metaTags: Map<String, String> = getMetaTags(content.htmlCode)
                         content.metaTags = metaTags
-                        content.title = metaTags["title"]!!
-                        content.description = metaTags["description"]!!
+                        content.title = metaTags["title"] ?: ""
+                        content.description = metaTags["description"] ?: ""
+                        content.finalUrl = metaTags["url"] ?: ""
 
                         when {
                             content.title == "" -> {
@@ -109,9 +106,9 @@ class LinkCrawler {
                     }
                 }
             }
-            val linksSet = content.finalUrl.split("&")
-            content.url = linksSet[0]
-            content.canonicalUrl = canonicalPage(content.finalUrl)
+            val linksSet = content.url.split("&")
+            content.finalUrl = linksSet[0]
+            content.canonicalUrl = canonicalPage(content.url)
             content.description = trimTags(content.description)
             //return content
             content
@@ -245,41 +242,6 @@ class LinkCrawler {
             }
         }
         return matches
-    }
-
-    private fun unshortenUrl(url: String): String {
-        if (!url.startsWith(HTTP_PROTOCOL) && !url.startsWith(HTTPS_PROTOCOL)) {
-            return ""
-        }
-
-        var urlConn = connectURL(url)
-        urlConn?.headerFields
-
-        var finalResult = urlConn?.url.toString()
-
-        urlConn = connectURL(finalResult)
-        urlConn?.headerFields
-
-        while (urlConn?.url.toString() != finalResult) {
-            finalResult = unshortenUrl(finalResult)
-        }
-
-        return finalResult
-
-    }
-
-    private fun connectURL(strURL: String): URLConnection? {
-        var conn: URLConnection? = null
-        try {
-            val inputURL = URL(strURL)
-            conn = inputURL.openConnection()
-        } catch (e: MalformedURLException) {
-            println("Please input a valid URL")
-        } catch (ioe: IOException) {
-            println("Can not connect to the URL")
-        }
-
-        return conn
     }
 
     private fun htmlDecode(content: String): String = Jsoup.parse(content).text()
