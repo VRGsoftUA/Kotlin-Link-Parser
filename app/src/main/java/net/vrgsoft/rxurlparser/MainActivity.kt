@@ -13,7 +13,8 @@ class MainActivity : AppCompatActivity() {
   private lateinit var mBinding: ActivityMainBinding
   private val crawler = LinkCrawler()
 
-  private var parseSubscription: Disposable? = null
+  private var githubSubscription: Disposable? = null
+  private var youtubeSubscription: Disposable? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -24,15 +25,22 @@ class MainActivity : AppCompatActivity() {
           .show()
     }
 
-    parseSubscription =
+    githubSubscription =
         crawler.parseUrl("https://github.com")
             .subscribe { t ->
-              mBinding.content = t.result
+              mBinding.contentGithub = t.result
+            }
+
+    youtubeSubscription =
+        crawler.parseUrl("https://youtu.be/X1RVYt2QKQE")
+            .subscribe { t ->
+              mBinding.contentYoutube = t.result
             }
   }
 
   override fun onPause() {
-    parseSubscription?.dispose()
+    githubSubscription?.dispose()
+    youtubeSubscription?.dispose()
     super.onPause()
   }
 }

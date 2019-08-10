@@ -6,7 +6,11 @@
     <data>
 
         <variable
-            name="content"
+            name="content_github"
+            type="net.vrgsoft.library.ParseContent" />
+
+        <variable
+            name="content_youtube"
             type="net.vrgsoft.library.ParseContent" />
     </data>
 
@@ -16,45 +20,81 @@
         tools:context="net.vrgsoft.rxurlparser.MainActivity">
 
         <TextView
-            android:id="@+id/title"
+            android:id="@+id/github_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/small_margin"
             android:layout_marginRight="@dimen/small_margin"
             android:layout_marginTop="8dp"
-            android:text="@{content.title}"
+            android:text="@{content_github.title}"
             android:textAlignment="center"
+            android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Title" />
 
         <TextView
-            android:id="@+id/description"
+            android:id="@+id/github_description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/small_margin"
             android:layout_marginRight="@dimen/small_margin"
             android:layout_marginTop="@dimen/small_margin"
-            android:text="@{content.description}"
-            android:textAlignment="center"
+            android:text="@{content_github.description}"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/title"
+            app:layout_constraintTop_toBottomOf="@+id/github_title"
             tools:text="Description" />
 
         <TextView
-            android:id="@+id/url"
+            android:id="@+id/github_url"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/small_margin"
+            android:layout_marginTop="@dimen/small_margin"
+            android:layout_marginRight="@dimen/small_margin"
+            android:text="@{content_github.finalUrl}"
+            android:textAlignment="center"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/github_description"
+            tools:text="www.vrgsoft.net" />
+
+        <TextView
+            android:id="@+id/youtube_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/small_margin"
+            android:layout_marginTop="16dp"
+            android:layout_marginRight="@dimen/small_margin"
+            android:text="@{content_youtube.title}"
+            android:textAlignment="center"
+            android:textStyle="bold"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/github_url"
+            tools:text="Title" />
+
+        <TextView
+            android:id="@+id/youtube_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/small_margin"
+            android:layout_marginTop="@dimen/small_margin"
+            android:layout_marginRight="@dimen/small_margin"
+            android:text="@{content_youtube.description}"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/youtube_title"
+            tools:text="Description" />
+
+        <TextView
+            android:id="@+id/youtube_url"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/small_margin"
             android:layout_marginRight="@dimen/small_margin"
             android:layout_marginTop="@dimen/small_margin"
-            android:text="@{content.finalUrl}"
+            android:text="@{content_youtube.finalUrl}"
             android:textAlignment="center"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/description"
+            app:layout_constraintTop_toBottomOf="@+id/youtube_description"
             tools:text="www.vrgsoft.net" />
     </android.support.constraint.ConstraintLayout>
 </layout>
